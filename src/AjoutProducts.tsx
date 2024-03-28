@@ -13,7 +13,6 @@ class CreerProduit extends Component {
             ingredients: []
         };
     }
-
     render() {
         return (
             <div>
