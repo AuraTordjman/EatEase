@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './index.css'; // Import Tailwind CSS
 
 function Panier() {
     const [items, setItems] = useState([
@@ -10,43 +11,69 @@ function Panier() {
     const [panier, setPanier] = useState([]);
 
     const ajouterAuPanier = (item) => {
-        setPanier([...panier, item]);
+        // Check if the item already exists in the cart
+        const existingItemIndex = panier.findIndex(cartItem => cartItem.id === item.id);
+
+        if (existingItemIndex !== -1) {
+            // If the item exists, update the quantity
+            const updatedPanier = [...panier];
+            updatedPanier[existingItemIndex].quantity += 1; // Assuming you add a 'quantity' property to each item
+            setPanier(updatedPanier);
+        } else {
+            // If the item doesn't exist, add it to the cart
+            setPanier([...panier, { ...item, quantity: 1 }]); // Add quantity property to the item
+        }
     };
 
     const retirerDuPanier = (id) => {
-        const nouveauPanier = panier.filter(item => item.id !== id);
-        setPanier(nouveauPanier);
+        const existingItemIndex = panier.findIndex(item => item.id === id);
+        const updatedPanier = [...panier];
+
+        if (updatedPanier[existingItemIndex].quantity === 1) {
+            // If there's only one instance of the item, remove it from the cart
+            updatedPanier.splice(existingItemIndex, 1);
+        } else {
+            // If there are multiple instances, decrement the quantity
+            updatedPanier[existingItemIndex].quantity -= 1;
+        }
+
+        setPanier(updatedPanier);
+    };
+
+    const retirerToutDuPanier = () => {
+        setPanier([]);
     };
 
     const calculerTotal = () => {
-        return panier.reduce((total, item) => total + item.price, 0);
+        return panier.reduce((total, item) => total + item.price * item.quantity, 0); // Multiply price by quantity
     };
 
     return (
-        <div>
-            <h1>Panier</h1>
+        <div className="container mx-auto px-4">
+            <h1 className="text-3xl font-bold mb-4">Panier</h1>
             <div>
-                <h2>Produits</h2>
+                <h2 className="text-xl font-semibold mb-2">Produits</h2>
                 <ul>
                     {items.map(item => (
-                        <li key={item.id}>
-                            {item.name} - ${item.price}
-                            <button onClick={() => ajouterAuPanier(item)}>Ajouter au panier</button>
+                        <li key={item.id} className="flex items-center justify-between mb-2">
+                            <span>{item.name} - ${item.price}</span>
+                            <button onClick={() => ajouterAuPanier(item)} className="bg-blue-500 text-white px-3 py-1 rounded">Ajouter au panier</button>
                         </li>
                     ))}
                 </ul>
             </div>
             <div>
-                <h2>Panier</h2>
+                <h2 className="text-xl font-semibold mb-2">Panier</h2>
                 <ul>
                     {panier.map(item => (
-                        <li key={item.id}>
-                            {item.name} - ${item.price}
-                            <button onClick={() => retirerDuPanier(item.id)}>Retirer du panier</button>
+                        <li key={item.id} className="flex items-center justify-between mb-2">
+                            <span>{item.name} - ${item.price} (Quantité: {item.quantity})</span>
+                            <button onClick={() => retirerDuPanier(item.id)} className="bg-red-500 text-white px-3 py-1 rounded">Retirer un</button>
                         </li>
                     ))}
                 </ul>
-                <h3>Total: ${calculerTotal()}</h3>
+                <button onClick={retirerToutDuPanier} className="bg-red-500 text-white px-3 py-1 rounded mt-4">Vider le panier</button>
+                <h3 className="mt-4">Total: ${calculerTotal()}</h3>
             </div>
         </div>
     );
